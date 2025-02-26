@@ -1,0 +1,26 @@
+name: Deploy Weed Detection App
+on:
+  push:
+    branches: [ master] # TODO Change branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --upgrade setuptools
+
+      - name: Build the Docker image
+        run: |
+          docker build -t pest-detection-app:latest .
+
