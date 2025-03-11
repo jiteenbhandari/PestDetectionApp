@@ -48,3 +48,10 @@ jobs:
           tags: |
             058264444462.dkr.ecr.us-east-1.amazonaws.com/mtech-pest-detection:latest
             058264444462.dkr.ecr.us-east-1.amazonaws.com/mtech-pest-detection:${{ github.sha }}
+      
+      - name: Deploy to AWS CloudFormation
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: pest-detection-fargate
+          template: ./cloudformation/ecs-service.yml
+          no-fail-on-empty-changeset: "1"

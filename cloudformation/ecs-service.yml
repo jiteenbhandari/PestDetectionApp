@@ -1,0 +1,56 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description:
+  AWS Fargate Mtech Project App
+Parameters:
+  EcsClusterName:
+    Type: String
+    Default: mtech-pest-detection-cluster
+
+Resources:
+  FargateDemoCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Ref EcsClusterName
+
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family:  mtech-pest-detection-task
+      Cpu: 1024
+      Memory: 4096
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn: "arn:aws:iam::058264444462:role/ecs-task-role"
+      TaskRoleArn: "arn:aws:iam::058264444462:role/ecs-task-role"
+      ContainerDefinitions:
+        - Name: "mtech-pest-detection"
+          Cpu: 1024
+          Memory: 4096
+          Image: "058264444462.dkr.ecr.us-east-1.amazonaws.com/mtech-pest-detection:latest"
+          LinuxParameters:
+            InitProcessEnabled: true
+          PortMappings:
+            - ContainerPort: 8501
+
+  Service:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: mtech-pest-detection-service
+      Cluster: !Ref EcsClusterName
+      LaunchType: FARGATE
+      PlatformVersion: LATEST
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 75
+      DesiredCount: 1
+      EnableExecuteCommand: true
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - "sg-049bac35495f03b3d"
+          Subnets:
+            - "subnet-0741f3ecf9237d114"
+            - "subnet-008ad060b043af650"
+      TaskDefinition: !Ref TaskDefinition
