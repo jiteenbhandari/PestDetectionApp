@@ -1,7 +1,7 @@
 name: Deploy Weed Detection App
 on:
   push:
-    branches: [ master] # TODO Change branch
+    branches: [ master]
 
 jobs:
   deploy:
@@ -20,7 +20,31 @@ jobs:
           python -m pip install --upgrade pip
           pip install --upgrade setuptools
 
-      - name: Build the Docker image
-        run: |
-          docker build -t pest-detection-app:latest .
+      - name: Get Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.SECRET_KEY }}
+          aws-region: us-east-1
 
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+  
+      - name: Get commit hash
+        id: get-commit-hash
+        run: echo "::set-output name=commit-hash::$(git rev-parse --short HEAD)"
+  
+      - name: Create ECR Repository
+        uses: int128/create-ecr-repository-action@v1
+        with:
+          repository: "mtech-pest-detection"
+  
+      - name: Push Docker image to ECR
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: |
+            058264444462.dkr.ecr.us-east-1.amazonaws.com/mtech-pest-detection:latest
+            058264444462.dkr.ecr.us-east-1.amazonaws.com/mtech-pest-detection:${{ github.sha }}
